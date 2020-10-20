@@ -32,7 +32,9 @@ jobs:
     docker:
       - image: circleci/node:13.8.0
     steps:
-      - run: echo "Hello, World!" > output.txt
+      - run: |
+          mkdir /tmp/workspace
+          echo "Hello, World!" > output.txt
       - persist_to_workspace:
             root: /tmp/workspace
             paths:
@@ -43,7 +45,7 @@ jobs:
     steps:
         - attach_workspace:
               at: /tmp/workspace
-        - run: cat /tmp/workspace/output.txt
+        - run: cat /tmp/output.txt
 
 
 # Orchestrate or schedule a set of jobs
