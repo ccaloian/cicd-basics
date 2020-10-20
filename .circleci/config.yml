@@ -34,7 +34,7 @@ jobs:
     steps:
       - run: |
           mkdir /tmp/workspace
-          echo "Hello, World!" > output.txt
+          echo "Hello, World!" > /tmp/workspace/output.txt
       - persist_to_workspace:
             root: /tmp/workspace
             paths:
@@ -45,7 +45,7 @@ jobs:
     steps:
         - attach_workspace:
               at: /tmp/workspace
-        - run: cat /tmp/output.txt
+        - run: cat /tmp/workspace/output.txt
 
 
 # Orchestrate or schedule a set of jobs
