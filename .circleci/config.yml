@@ -79,7 +79,6 @@ workflows:
       - print_world:
           requires:
             - print_hello
-      - fail_and_recover
       - print_name
   shared_hello_world:
     jobs:
