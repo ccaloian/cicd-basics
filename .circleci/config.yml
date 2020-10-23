@@ -18,6 +18,16 @@ orbs:
 
 # Declare jobs
 jobs:
+  fail_and_recover:
+    <<: *docker_image
+    steps:
+      - run: echo "running this command"
+      - run: echo "running that command"
+      - run: return 1
+      - run: echo "running other command"
+      - run: 
+          command: echo "I'm recovering from a failure..."
+          when: on_fail
   print_name:
     <<: *docker_image
     steps:
@@ -69,6 +79,7 @@ workflows:
       - print_world:
           requires:
             - print_hello
+      - fail_and_recover
       - print_name
   shared_hello_world:
     jobs:
