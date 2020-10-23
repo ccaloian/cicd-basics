@@ -1,6 +1,16 @@
 # Use the latest 2.1 version of CircleCI pipeline process engine. See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
+commands:
+  print_pipeline_id:
+    description: "A very simple command that prints the pipeline id."
+    steps:
+        - run: echo $CIRCLE_WORKFLOW_ID
+
+docker_image: &docker_image
+  docker:
+    - image: circleci/node:13.8.0
+
 # Use a package of configuration called an orb.
 orbs:
   # Declare a dependency on the welcome-orb
@@ -9,29 +19,27 @@ orbs:
 # Declare jobs
 jobs:
   print_name:
-    docker:
-      - image: circleci/node:13.8.0
+    <<: *docker_image
     steps:
+      - print_pipeline_id
       - run:
           name: "echo an env var that is part of the project"
           command: |
             echo "my name is $MY_NAME"
   print_hello:
-    docker:
-      - image: circleci/node:13.8.0
+    <<: *docker_image
     steps:
-      - checkout
+      - print_pipeline_id
       - run: echo "hello"
   print_world:
-    docker:
-      - image: circleci/node:13.8.0
+    <<: *docker_image
     steps:
-      - checkout
+      - print_pipeline_id
       - run: echo "world"
   save_hello_world_output:
-    docker:
-      - image: circleci/node:13.8.0
+    <<: *docker_image
     steps:
+      - print_pipeline_id
       - run: |
           mkdir /tmp/workspace
           echo "Hello, World!" > /tmp/workspace/output.txt
@@ -40,9 +48,9 @@ jobs:
             paths:
                 - output.txt
   print_output_file:
-    docker:
-        - image: circleci/node:13.8.0
+    <<: *docker_image
     steps:
+        - print_pipeline_id
         - attach_workspace:
               at: /tmp/workspace
         - run: cat /tmp/workspace/output.txt
