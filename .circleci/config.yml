@@ -1,17 +1,6 @@
 # Use the latest 2.1 version of CircleCI pipeline process engine. See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
-commands:
-  print_pipeline_id:
-    description: "A very simple command that prints the pipeline id."
-    steps:
-        - run: echo $CIRCLE_WORKFLOW_ID
-
-docker_image: &docker_image
-  docker:
-    - image: circleci/node:13.8.0
-
-
 # Declare jobs
 jobs:
   create_infrastructure:
@@ -21,75 +10,26 @@ jobs:
       - checkout
       - run:
           command: |
-            aws cloudformation create-stack \
-              --stack-name cicd-basics \
-              --template-body file://infra-template.yml  \
-              --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" \
-              --region=us-west-2
-  # fail_and_recover:
-  #   <<: *docker_image
-  #   steps:
-  #     - run: echo "running this command"
-  #     - run: echo "running that command"
-  #     - run: return 1
-  #     - run: echo "running other command"
-  #     - run: 
-  #         command: echo "I'm recovering from a failure..."
-  #         when: on_fail
-  # print_name:
-  #   <<: *docker_image
-  #   steps:
-  #     - print_pipeline_id
-  #     - run:
-  #         name: "echo an env var that is part of the project"
-  #         command: |
-  #           echo "my name is $MY_NAME"
-  # print_hello:
-  #   <<: *docker_image
-  #   steps:
-  #     - print_pipeline_id
-  #     - run: echo "hello"
-  # print_world:
-  #   <<: *docker_image
-  #   steps:
-  #     - print_pipeline_id
-  #     - run: echo "world"
-  # save_hello_world_output:
-  #   <<: *docker_image
-  #   steps:
-  #     - print_pipeline_id
-  #     - run: |
-  #         mkdir /tmp/workspace
-  #         echo "Hello, World!" > /tmp/workspace/output.txt
-  #     - persist_to_workspace:
-  #           root: /tmp/workspace
-  #           paths:
-  #               - output.txt
-  # print_output_file:
-  #   <<: *docker_image
-  #   steps:
-  #       - print_pipeline_id
-  #       - attach_workspace:
-  #             at: /tmp/workspace
-  #       - run: cat /tmp/workspace/output.txt
+            aws cloudformation deploy \
+              --template-body infra-template.yml \
+              --stack-name cicd-basics
+  configure_infrastructure:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["95:cc:4a:2a:56:ac:93:91:3c:49:09:0d:83:d1:8e:b5"]
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update ansible # install the dependencies needed for your playbook
+      - run:
+          name: Configure server
+          command: |
+            ansible-playbook -i inventory.txt playbook.yml
 
-
-# Orchestrate or schedule a set of jobs
 workflows:
   infra:
     jobs:
-      - create_infrastructure
-  # hello_world:
-  #   jobs:
-  #     - print_hello
-  #     - print_world:
-  #         requires:
-  #           - print_hello
-  #     - print_name
-  # shared_hello_world:
-  #   jobs:
-  #       - save_hello_world_output
-  #       - print_output_file:
-  #           requires:
-  #             - save_hello_world_output
-
+      - configure_infrastructure
