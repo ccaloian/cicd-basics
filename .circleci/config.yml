@@ -11,79 +11,85 @@ docker_image: &docker_image
   docker:
     - image: circleci/node:13.8.0
 
-# Use a package of configuration called an orb.
-orbs:
-  # Declare a dependency on the welcome-orb
-  welcome: circleci/welcome-orb@0.4.1
 
 # Declare jobs
 jobs:
-  fail_and_recover:
-    <<: *docker_image
+  create_infrastructure:
+    docker:
+        - image: amazon/aws-cli
     steps:
-      - run: echo "running this command"
-      - run: echo "running that command"
-      - run: return 1
-      - run: echo "running other command"
-      - run: 
-          command: echo "I'm recovering from a failure..."
-          when: on_fail
-  print_name:
-    <<: *docker_image
-    steps:
-      - print_pipeline_id
+      - checkout
       - run:
-          name: "echo an env var that is part of the project"
           command: |
-            echo "my name is $MY_NAME"
-  print_hello:
-    <<: *docker_image
-    steps:
-      - print_pipeline_id
-      - run: echo "hello"
-  print_world:
-    <<: *docker_image
-    steps:
-      - print_pipeline_id
-      - run: echo "world"
-  save_hello_world_output:
-    <<: *docker_image
-    steps:
-      - print_pipeline_id
-      - run: |
-          mkdir /tmp/workspace
-          echo "Hello, World!" > /tmp/workspace/output.txt
-      - persist_to_workspace:
-            root: /tmp/workspace
-            paths:
-                - output.txt
-  print_output_file:
-    <<: *docker_image
-    steps:
-        - print_pipeline_id
-        - attach_workspace:
-              at: /tmp/workspace
-        - run: cat /tmp/workspace/output.txt
+            aws cloudformation create-stack \
+              --stack-name cicd-basics \
+              --template-body infra-template.yml  \
+              --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" \
+              --region=us-west-2
+  # fail_and_recover:
+  #   <<: *docker_image
+  #   steps:
+  #     - run: echo "running this command"
+  #     - run: echo "running that command"
+  #     - run: return 1
+  #     - run: echo "running other command"
+  #     - run: 
+  #         command: echo "I'm recovering from a failure..."
+  #         when: on_fail
+  # print_name:
+  #   <<: *docker_image
+  #   steps:
+  #     - print_pipeline_id
+  #     - run:
+  #         name: "echo an env var that is part of the project"
+  #         command: |
+  #           echo "my name is $MY_NAME"
+  # print_hello:
+  #   <<: *docker_image
+  #   steps:
+  #     - print_pipeline_id
+  #     - run: echo "hello"
+  # print_world:
+  #   <<: *docker_image
+  #   steps:
+  #     - print_pipeline_id
+  #     - run: echo "world"
+  # save_hello_world_output:
+  #   <<: *docker_image
+  #   steps:
+  #     - print_pipeline_id
+  #     - run: |
+  #         mkdir /tmp/workspace
+  #         echo "Hello, World!" > /tmp/workspace/output.txt
+  #     - persist_to_workspace:
+  #           root: /tmp/workspace
+  #           paths:
+  #               - output.txt
+  # print_output_file:
+  #   <<: *docker_image
+  #   steps:
+  #       - print_pipeline_id
+  #       - attach_workspace:
+  #             at: /tmp/workspace
+  #       - run: cat /tmp/workspace/output.txt
 
 
 # Orchestrate or schedule a set of jobs
 workflows:
-  # Name the workflow "welcome"
-  welcome:
-    # Run the welcome/run job in its own container
+  infra:
     jobs:
-      - welcome/run
-  hello_world:
-    jobs:
-      - print_hello
-      - print_world:
-          requires:
-            - print_hello
-      - print_name
-  shared_hello_world:
-    jobs:
-        - save_hello_world_output
-        - print_output_file:
-            requires:
-              - save_hello_world_output
+      - create_infrastructure
+  # hello_world:
+  #   jobs:
+  #     - print_hello
+  #     - print_world:
+  #         requires:
+  #           - print_hello
+  #     - print_name
+  # shared_hello_world:
+  #   jobs:
+  #       - save_hello_world_output
+  #       - print_output_file:
+  #           requires:
+  #             - save_hello_world_output
 
