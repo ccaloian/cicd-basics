@@ -5,7 +5,7 @@ Resources:
       SecurityGroups:
         - !Ref InstanceSecurityGroup
       KeyName: us-west-2-key
-      ImageId: 'ami-068663a3c619dd892'
+      ImageId: 'ami-07a29e5e945228fa1'
   InstanceSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:

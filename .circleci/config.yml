@@ -23,7 +23,7 @@ jobs:
           command: |
             aws cloudformation create-stack \
               --stack-name cicd-basics \
-              --template-body infra-template.yml  \
+              --template-body file://infra-template.yml  \
               --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" \
               --region=us-west-2
   # fail_and_recover:
