@@ -79,6 +79,10 @@ jobs:
     steps:
         - checkout
         - run:
+            name: Install tar utility
+            command: |
+              yum install -y tar
+        - run:
             name: Get last deployment id
             command: |
               aws cloudformation \
